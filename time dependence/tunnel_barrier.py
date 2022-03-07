@@ -27,8 +27,8 @@ def Potenziale(x):
     return A*np.exp(-(x/s)**2)
 
 
-n = 1001
 dx = 0.001
+n = 1001
 a = -0.5
 b = -a
 x = np.linspace(a, b, n)
