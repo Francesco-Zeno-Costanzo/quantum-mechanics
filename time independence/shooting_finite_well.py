@@ -5,7 +5,6 @@ The resolution is done along a single direction and for x>0 then using the symme
 """
 import time
 import numpy as np
-import scipy.special as ssp
 import scipy.integrate as si
 import matplotlib.pyplot as plt
 
