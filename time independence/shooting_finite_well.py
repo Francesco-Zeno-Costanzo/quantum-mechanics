@@ -1,5 +1,5 @@
 """
-Code to solve schrodinger equation for harmonic or anharmonic oscillator via im shooting method.
+Code to solve schrodinger equation for finite well via im shooting method.
 To solve the equation at each step we use Adams-Bashforth-Moulton predictor and corretor of order 4.
 The resolution is done along a single direction and for x>0 then using the symmetry it extends to x<0.
 """
@@ -235,8 +235,8 @@ x     = np.linspace(0, x_max, N)               # array of half box, for solving 
 z     = np.linspace(-x_max, x_max, 2*N + 1)    # total array of distance in the box
 x_b   = 10                                     # half width
 V0    = -1                                     # potential
-n     = 0                                      # "label of energy level" in reality it must be set either even or odd, the important thing is the energy guess
-i_eig = -0.7                                   # initial guess for eigenvalue
+n     = 1                                      # "label of energy level" in reality it must be set either even or odd, the important thing is the energy guess
+i_eig = -0.82                                   # initial guess for eigenvalue
 
 
 #================================================================================
