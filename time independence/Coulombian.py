@@ -1,71 +1,75 @@
+"""
+Code to solve the 1D Schrödinger equation by discretizing the Laplacian for the coulomb potential.
+The code works poorly if l > 0
+"""
 import time
+import math
 import numpy as np
 import scipy.special as ssp
 from scipy.sparse import diags
 import  matplotlib.pyplot  as  plt
 
-start_time=time.time()
+start = time.time()
 
-def fatt(n):
-    if(n == 0) or (n == 1):
-        return 1
-    else:
-        return n*fatt(n-1)
+n  = 1000                    # number of points
+xr = 25                      # right boundary
+xl = 1e-10                   # left boundary
+L  = xr - xl                 # size of box
+h  = (xr - xl)/n             # step size
+tt = np.linspace(0, n, n)    # auxiliar array
+xp = xl + h*tt               # grid on x
+l  = 0                       # potentential's parameter
 
-def G(x, m, l):
-    return (2/(m**2))*np.sqrt((fatt(m-l-1))/ssp.gamma(m+l))*((2*x/(m))**l)*np.exp(-x/m)*ssp.eval_genlaguerre(m-l-1, 2*l+1, 2*x/m)
+def U(x):
+    """ Potential
+    """
+    return -1/x - l*(l+1)/x**2
 
-n=2000
-xr=25
-xl=0
-L=xr-xl
-h=(xr-xl)/(n)
-tt=np.linspace(0, n, n+1)
-tt[0]=tt[0]+1
-xp=xl+h*tt
+def G(x, n, l):
+    """ Analytical solution
+    """
+    C = (2/(n**2))*np.sqrt((math.factorial(n-l-1))/math.factorial(n+l))
+    return C*((2*x/n)**l)*np.exp(-x/n)*ssp.eval_genlaguerre(n-l-1, 2*l+1, 2*x/n)
+    
+#=========================================================
+# Build hamiltonian of system and diagonalizzation
+#=========================================================
 
-def f(x):
-    return -1/x
-P=diags([1, -2, 1], [-1, 0, 1], shape=(n+1, n+1)).toarray()
-V=diags(f(xp), 0, shape=(n+1, n+1)).toarray()
-H=-(1/(2*h**2))*P+V
+P = diags([1, -2, 1], [-1, 0, 1], shape=(n, n)).toarray()
+V = diags(U(xp), 0, shape=(n, n)).toarray()
+H = -(1/(2*h**2))*P + V
 
-a= (time.time() - start_time)
-print("--- %s seconds ---" %a)
+eigval, eigvec = np.linalg.eig(H)
 
-aval, avec=np.linalg.eig(H)
+eigvals = np.sort(eigval)
+eigvecs = eigvec[:,eigval.argsort()]
+psi     = eigvecs/np.sqrt(h)
 
-b= (time.time() - start_time - a)
-print("--- %s seconds ---" %b)
+#=========================================================
+# Plot
+#=========================================================
+m = 2 # index for plot
 
-avals=np.sort(aval)
-avecs=avec[:,aval.argsort()]
-psi=avecs/np.sqrt(h)
-##
-m=1
 plt.figure(1)
-plt.title("$\psi(x)$ Radiale atomo di igrogeno", fontsize=20)
+plt.title("Radial $\psi(x)$ of hydrogen", fontsize=20)
 plt.xlabel('x', fontsize=15)
 plt.ylabel('$\psi(x)$', fontsize=15)
-plt.errorbar(xp, (psi[:,m-1])**2+avals[m-1], fmt='.',  label='$\psi(x)$ numerica %ds' %m)
-plt.plot(xp, np.ones(len(xp))*avals[m-1], color='black', linestyle='--', label='$E_{%d}=%f$' %(m-1, avals[m-1]))
+plt.errorbar(xp, (psi[:,m])**2+eigvals[m], fmt='.',  label=f'$\psi(x)$ numerica {m}')
+plt.plot(xp, np.ones(len(xp))*eigvals[m], color='blue', linestyle='--', label='$E_{%d}=%f$' %(m, eigvals[m]))
 
-x=np.linspace(xl+1e-12, xr, n)
-plt.plot(x ,f(x), color='black', label='V(x)=$\dfrac{1}{x}$')
+plt.plot(xp, U(xp), color='black', label='V(x)=-$\dfrac{1}{x}$')
 plt.ylim(-1,0.75)
 
-x=np.linspace(xl, xr, n+1)
-plt.plot(x , (x*G(x, m, 0))**2+avals[m-1], color='red', label='$\psi(x)$ analitica %ds' %m)
+plt.plot(xp, (xp*G(xp, m, l))**2+eigvals[m], color='red', label='$\psi(x)$ analitica %ds' %m)
 plt.grid()
 plt.legend(loc='best')
 
 plt.figure(2)
-plt.title("Differenza fra $\psi(x)$ numerica e esatta", fontsize=20)
+plt.title("Error", fontsize=20)
 plt.xlabel('x', fontsize=15)
 plt.ylabel('$\psi(x)_{num}-\psi(x)_{es}$', fontsize=15)
-plt.errorbar(xp, psi[:,m-1]**2-(x*G(x, m, 0))**2, fmt='.')
+plt.errorbar(xp, psi[:,m]**2-(xp*G(xp, m, l))**2, fmt='.')
 plt.grid()
 
+print(f"--- {time.time() - start} seconds ---")
 plt.show()
-print("--- %s seconds ---" % (time.time() - start_time - b-a))
-print(avals[0:m])
