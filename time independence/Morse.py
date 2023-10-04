@@ -1,74 +1,91 @@
+"""
+Code to solve the 1D Schrödinger equation by discretizing the Laplacian for the Morse potential
+"""
 import time
 import numpy as np
 import scipy.special as ssp
 from scipy.sparse import diags
 import  matplotlib.pyplot  as  plt
-start_time=time.time()
 
-n=3000
-xr=10
-xl=-0
-L=xr-xl
-h=(xr-xl)/(n)
-tt=np.linspace(0, n, n)
-xp=xl+h*tt
+start = time.time()
 
-x0=1
-B=152
-def f(x):
+n  = 2000                    # number of points
+xr = 10                      # right boundary
+xl = 0                       # left boundary
+L  = xr - xl                 # size of box
+h  = (xr - xl)/n             # step size
+tt = np.linspace(0, n, n)    # auxiliar array
+xp = xl + h*tt               # grid on x
+x0 = 1                       # potential parameter
+B  = 152                     # potential parameter
+
+def U(x):
+    """ Morse potential
+    """
     return B*(1 - np.exp(-(x-x0)))**2
-l=np.sqrt(2*B)
+    
+
 def G(x, n):
-    return np.sqrt(((ssp.gamma(n+1)*(2*l-2*n-1))/ssp.gamma(2*l-n)))*(2*l*np.exp(-(x-x0)))**(l-n-1/2)*np.exp(-1/2 *2*l*np.exp(-(x-x0)))*ssp.eval_genlaguerre(n, 2*l-2*n-1, 2*l*np.exp(-(x-x0)))
+    """ Analytical solution
+    """
+    l  = np.sqrt(2*B)
+    t1 = np.sqrt(((ssp.gamma(n+1)*(2*l-2*n-1))/ssp.gamma(2*l-n)))
+    t2 = (2*l*np.exp(-(x-x0)))**(l-n-1/2)
+    t3 = np.exp(-1/2 *2*l*np.exp(-(x-x0)))
+    t4 = ssp.eval_genlaguerre(n, 2*l-2*n-1, 2*l*np.exp(-(x-x0)))
+    return t1 * t2 * t3 * t4
 
-P=diags([1, -2, 1], [-1, 0, 1], shape=(n, n)).toarray()
-V=diags(f(xp), 0, shape=(n, n)).toarray()
-H=-(1/(2*h**2))*P+V
+#=========================================================
+# Build hamiltonian of system and diagonalizzation
+#=========================================================
 
-a=(time.time() - start_time)
-print("--- %s seconds ---" %a)
+P = diags([1, -2, 1], [-1, 0, 1], shape=(n, n)).toarray()
+V = diags(U(xp), 0, shape=(n, n)).toarray()
+H = -(1/(2*h**2))*P + V
 
-aval, avec=np.linalg.eig(H)
+eigval, eigvec = np.linalg.eig(H)
 
-b=(time.time() - start_time - a)
-print("--- %s seconds ---" % b)
+eigvals = np.sort(eigval)
+eigvecs = eigvec[:,eigval.argsort()]
+psi     = eigvecs/np.sqrt(h)
 
-avals=np.sort(aval)
-avecs=avec[:,aval.argsort()]
-psi=avecs/np.sqrt(h)
-##
-m=14
-x=np.linspace(xl, xr, n)
+#=========================================================
+# Plot
+#=========================================================
+m = 14 # index for plot
+
+
 plt.figure(1)
-plt.ylim(np.min(psi[:,m]+avals[m]), np.max(psi[:,m]+avals[m]))
-plt.title("$\psi(x)$ Potenziale di Morse n=%d" %m, fontsize=20)
+plt.ylim(0, B)
+#plt.ylim(np.min(psi[:,m]+eigvals[m]), np.max(psi[:,m]+eigvals[m]))
+plt.title(f"$\psi(x)$ Morse's potential n={m}", fontsize=20)
 plt.ylabel('$\psi(x)$', fontsize=15)
 plt.xlabel('x', fontsize=15)
 plt.grid()
 
-plt.errorbar(xp, psi[:,m]+avals[m], fmt='.', label='$\psi(x)$ numerica')
-plt.plot(x, G(x, m)+avals[m], color='red', label='$\psi(x)$ analitica')
-plt.plot(x, f(x), color='black', label='V(x)= $B(1-e^{-(x-x_0)})^2$')
-plt.plot(x,np.ones(len(x))*avals[m], color='black', linestyle='--', label='$E_{%d}=%f$' %(m, avals[m]))
+plt.errorbar(xp, psi[:,m] + eigvals[m], fmt='.', label='$\psi(x)$ computed')
+plt.plot(xp, G(xp, m) + eigvals[m], color='red', label='$\psi(x)$ analytical')
+plt.plot(xp, U(xp), color='black', label='V(x)= $B(1-e^{-(x-x_0)})^2$')
+plt.plot(xp, np.ones(len(xp))*eigvals[m], color='black', linestyle='--', label='$E_{%d}=%f$' %(m, eigvals[m]))
 plt.legend(loc='best')
 
 
 plt.figure(3)
-plt.title("Differenza fra $\psi(x)$ numerica e esatta", fontsize=20)
+plt.title("Error", fontsize=20)
 plt.xlabel('x', fontsize=15)
 plt.ylabel('$\psi(x)_{num}-\psi(x)_{es}$', fontsize=15)
-plt.errorbar(xp, psi[:,m]-G(x, m), fmt='.')
+plt.errorbar(xp, psi[:,m]-G(xp, m), fmt='.')
 plt.grid()
 
+print(f"--- {time.time() - start} seconds ---")
 plt.show()
-print("--- %s seconds ---" % (time.time() - start_time-b-a))
-
-E=np.array([])
-N=int(np.sqrt(2*B)-0.5)
+# True eigenvalues
+E = np.array([])
+N = int(np.sqrt(2*B)-0.5)
 for i in range(N):
-    o=np.sqrt(2*B)
-    En=o*(i+1/2)-((o**2)/(4*B))*(i+1/2)**2
-    E=np.insert(E, len(E), En)
-print(avals[0:N]-E)
+    o  = np.sqrt(2*B)
+    En = o*(i+1/2)-((o**2)/(4*B))*(i+1/2)**2
+    E  = np.insert(E, len(E), En)
 
+print(eigvals[0:N]-E)
 
