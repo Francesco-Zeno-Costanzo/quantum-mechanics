@@ -6,88 +6,97 @@ import matplotlib.animation as animation
 
 
 def psi_inc(x):
-    '''Funzione d'onda "particella" incidente
+    ''' Initial wave function
     '''
 
-    x0 = -0.1      #centro pacchetto
-    a = 0.01       #larghezza pacchetto
-    k = 200000.0   #numero donda del pacchetto
+    x0 = -0.1      # center of gaussian 
+    a  = 0.01      # variance
+    k  = 200000    # wave number
 
-    A = 1. #/ np.sqrt( 2 * np.pi * a**2 ) #per avere pacchetto normalizzato
+    A = 1. #/ np.sqrt( 2 * np.pi * a**2 ) # normalizzation
     K1 = np.exp( - ( x - x0 )**2 / ( 2. * a**2 ) )
     K2 = np.exp( 1j * k * x )
 
     return A * K1 * K2
 
-def Potenziale(x):
-    '''Potenziale a "delta"
+def U(x):
+    ''' potential
     '''
     A = 1e6
     s = 0.001
     return A*np.exp(-(x/s)**2)
 
 
-dx = 0.001
-n = 1001
-a = -0.5
-b = -a
-x = np.linspace(a, b, n)
+n  = 1001                  # number of point
+a  = -0.5                  # left boundary
+b  = -a                    # right boundary
+x  = np.linspace(a, b, n)  # grid on x axis
+dx = np.diff(x)[0]         # step size
+T  = 0.0035                # Total time of evolution
+dt = 1e-5                  # step size for time evolution
+ts = int(T/dt)             # number of iteration
 
+#=========================================================
+# Build hamiltonian of system
+#=========================================================
 
-T = 0.0035
-dt = 1e-5
-t = 0
-time_steps = int(T/dt)
+P = -1/(2*dx**2) * sp.diags([1, -2, 1], [-1, 0, 1], shape=(n, n))
+V = sp.diags(U(x), 0, shape=(n, n))
+H = P + V
+#identity matrix
+I =  sp.diags([1], 0, shape=(n, n))
 
-k1 = - 1j / (2.)
-k2 =  1j
-
+#=========================================================
+# Start of simulation
+#=========================================================
 
 psi = psi_inc(x)
 
-#matrice cinetica
-P = (k1 / dx**2) * sp.diags([1, -2, 1], [-1, 0, 1], shape=(n, n))
+PSI_T = np.zeros((ts, len(psi))) # abs(psi)^2
+PSI_I = np.zeros((ts, len(psi))) # Im(psi)
+PSI_R = np.zeros((ts, len(psi))) # Re(psi)
 
-#matrice potenziale
-V = k2 * sp.diags(Potenziale(x), 0, shape=(n, n))
+PSI_T[0, :] = abs(psi)**2
+PSI_R[0, :] = np.real(psi)
+PSI_I[0, :] = np.imag(psi)
 
-#identità
-I =  sp.diags([1], 0, shape=(n, n))
-
-PSI = np.zeros((time_steps, len(psi)))
-PSI[0,:] = abs(psi)**2
 
 fig = plt.figure()
-plt.title("Propagazione pacchetto gaussiano")
-
-plt.plot(x, Potenziale(x), label='$V(x)$' )
-
+plt.title("Gaussian packet propagation")
+plt.plot(x, U(x), label='$V(x)$', color='black')
 plt.grid()
 
-plt.ylim(-0.1, np.max(PSI[0,:]))
+plt.ylim(-0.1, np.max(PSI_T[0,:]))
 
+# Time evolution
+for i in range(ts):
 
-for i in range(time_steps):
-
-
-    A = (I - dt/2. * (P + V))
-    b = (I + dt/2. * (P + V)) * psi
+    A = (I - 1j * dt/2. * H)
+    b = (I + 1j * dt/2. * H) * psi
 
     psi = sp.linalg.spsolve(A,b)
 
-    t += dt
+    PSI_T[i, :] = abs(psi)**2
+    PSI_R[i, :] = np.real(psi)
+    PSI_I[i, :] = np.imag(psi)
 
-    PSI[i, :] = abs(psi)**2
+#=========================================================
+# Animation
+#=========================================================
 
-line, = plt.plot([], [], 'b', label=r"$|\psi(x, t)|^2$")
+line0, = plt.plot([], [], 'b', label=r"$|\psi(x, t)|^2$")
+#line1, = plt.plot([], [], 'r', label=r"$Im(\psi(x, t))$")
+#line2, = plt.plot([], [], 'y', label=r"$Re(\psi(x, t))$")
 
 def animate(i):
-    line.set_data(x, PSI[i, :])
-    return line,
+    line0.set_data(x, PSI_T[i, :])
+    #line1.set_data(x, PSI_I[i, :])
+    #line2.set_data(x, PSI_R[i, :])
+    return line0, #line1, line2
 
 plt.legend(loc='best')
 
-anim = animation.FuncAnimation(fig, animate, frames=time_steps, interval=10, blit=True, repeat=True)
+anim = animation.FuncAnimation(fig, animate, frames=ts, interval=10, blit=True, repeat=True)
 
 #anim.save('tunnel barriera.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
 
