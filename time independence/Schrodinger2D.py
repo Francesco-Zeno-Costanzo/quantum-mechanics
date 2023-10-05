@@ -18,6 +18,11 @@ def U(x, y):
 
 #=========================================================
 # Build hamiltonian of system and diagonalizzation
+# By discretizing the two spatial derivatives, since they
+# are different coordinates, the tensor product between the
+# matrices and the identity must be made:
+# d^2/dx^2 x I_y + I_x x d^2/dy
+# This is all implemented in the kronsum function
 #=========================================================
 
 P = diags([1, -2, 1], [-1, 0, 1], shape=(N, N))
