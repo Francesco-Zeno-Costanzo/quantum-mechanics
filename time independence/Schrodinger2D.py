@@ -3,7 +3,7 @@ Code to solve the Schrodinger equation in two spatial dimensions via diagonaliza
 """
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.sparse.linalg import eigsh, spsolve
+from scipy.sparse.linalg import eigsh
 from scipy.sparse import kronsum, diags
 
 N = 150                    # number of points
