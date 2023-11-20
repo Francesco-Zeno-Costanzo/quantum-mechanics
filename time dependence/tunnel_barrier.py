@@ -1,9 +1,21 @@
+"""
+Code for the solution of Schrodinger's time dependent equation
+via split operator method without FFT: 
+The idea is that the wave function at time t+dt evolved backwards
+by dt/2 is the same as that at time t evolved forward by dt/2:
+exp(1j H dt/2) \psi(t + dt, x) = exp(-1j H dt/2) psi(t, x).
+We also use that: exp(1j H dt/2) = 1 + 1j H dt/2 (at first order)
+so we have to solve a system.
+"""
 import numpy as np
 import scipy.sparse as sp
 import scipy.sparse.linalg
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
+#=========================================================
+# Initial wave function ad potential
+#=========================================================
 
 def psi_inc(x):
     ''' Initial wave function
@@ -26,6 +38,9 @@ def U(x):
     s = 0.001
     return A*np.exp(-(x/s)**2)
 
+#=========================================================
+# Computational parameters
+#=========================================================
 
 n  = 1001                  # number of point
 a  = -0.5                  # left boundary
