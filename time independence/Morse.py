@@ -36,7 +36,7 @@ def G(x, n):
     return t1 * t2 * t3 * t4
 
 #=========================================================
-# Build hamiltonian of system and diagonalizzation
+# Build hamiltonian of system and diagonalization
 #=========================================================
 
 P = diags([1, -2, 1], [-1, 0, 1], shape=(n, n)).toarray()

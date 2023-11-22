@@ -17,7 +17,7 @@ def U(x, y):
     return 0*X*Y
 
 #=========================================================
-# Build hamiltonian of system and diagonalizzation
+# Build hamiltonian of system and diagonalization
 # By discretizing the two spatial derivatives, since they
 # are different coordinates, the tensor product between the
 # matrices and the identity must be made:

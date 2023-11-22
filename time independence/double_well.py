@@ -23,7 +23,7 @@ def U(x):
     return -1/2 * x**2 + (g/2)*x**4 + 1/(8*g)
 
 #=========================================================
-# Build hamiltonian of system and diagonalizzation
+# Build hamiltonian of system and diagonalization
 #=========================================================
 
 P = diags([1, -2, 1], [-1, 0, 1], shape=(n, n)).toarray()

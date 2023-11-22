@@ -28,7 +28,7 @@ def G(x, m):
     return (1/(np.pi)**(1/4))*(1/np.sqrt((2**m)*ssp.gamma(m+1)))*ssp.eval_hermite(m, x)*np.exp(-(x**2)/2)
     
 #=========================================================
-# Build hamiltonian of system and diagonalizzation
+# Build hamiltonian of system and diagonalization
 #=========================================================
 
 P = diags([1, -2, 1], [-1, 0, 1], shape=(n, n)).toarray()

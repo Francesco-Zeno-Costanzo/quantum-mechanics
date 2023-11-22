@@ -32,7 +32,7 @@ def G(x, n, l):
     return C*((2*x/n)**l)*np.exp(-x/n)*ssp.eval_genlaguerre(n-l-1, 2*l+1, 2*x/n)
     
 #=========================================================
-# Build hamiltonian of system and diagonalizzation
+# Build hamiltonian of system and diagonalization
 #=========================================================
 
 P = diags([1, -2, 1], [-1, 0, 1], shape=(n, n)).toarray()
