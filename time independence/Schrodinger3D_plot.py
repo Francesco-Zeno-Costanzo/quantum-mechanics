@@ -48,26 +48,22 @@ def sampling(psi, x, M):
     x, y, z : 1darray
         resampled coordinates
     '''
+    N = x.size
+    # create all points via cartesian product
+    R3    = list(itertools.product(x, x, x))
+    index = np.linspace(0, N**3, N**3, dtype=int)
 
-    # create all poits via cartesian product
-    R3 = [str(xyz) for xyz in itertools.product(x, x, x)]
-    # we use strings to avoid problem for np.random.choice
-
-    # Sample coordinates according abs(psi)^2
-    coord = np.random.choice(R3, size=M, replace=True, p=abs(psi)**2)
-    # Delete parentesis
-    coord = [c[1:-1].split(',') for c in coord]
-    # Unpack corrdinates and convert from string to float
+    # Sample index coordinates according abs(psi)^2
+    index_coord = np.random.choice(index, size=M, replace=True, p=abs(psi)**2)
+    coord       = [R3[c] for c in index_coord]
+    # Unpack corrdinates
     x, y, z = np.array(coord).T
-    x = np.array([float(i) for i in x])
-    y = np.array([float(i) for i in y])
-    z = np.array([float(i) for i in z])
 
     return x, y, z
 
 n = 5
 k = deg(n)
-x_p, y_p, z_p = sampling(eigvec.T[n], x, 10000)
+x_p, y_p, z_p = sampling(eigvec.T[n], x, 100000)
 
 fig = plt.figure(2, figsize=(9,9))
 
@@ -77,7 +73,7 @@ ax.set_xlabel("x", fontsize=15)
 ax.set_ylabel("y", fontsize=15)
 ax.set_zlabel("z", fontsize=15)
 #p = ax.scatter(x, y, z, c=P, cmap='plasma', s=P);fig.colorbar(p)
-ax.scatter(x_p, y_p, z_p, s=2, alpha=0.5, c='blue')
+ax.scatter(x_p, y_p, z_p, s=0.22, alpha=0.5, c='blue')
 #plt.tight_layout()
 
 #=========================================================
