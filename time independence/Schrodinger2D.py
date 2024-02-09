@@ -84,6 +84,8 @@ plt.suptitle("2D wave function", fontsize=15)
 for i in range(1, len(eigval)):
     ax = fig.add_subplot(3, 3, i)
     ax.set_aspect('equal', 'box')
+    #ax.set_xlim(-4, 4)
+    #ax.set_ylim(-4, 4)
     ax.contourf(X, Y, abs(psi(i))**2, 20, cmap='plasma')
 
 fig = plt.figure(2)
