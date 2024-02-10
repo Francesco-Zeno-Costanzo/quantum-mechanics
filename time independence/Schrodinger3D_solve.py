@@ -1,8 +1,9 @@
 """
 Code to solve the Schrodinger equation in 3 spatial dimensions via diagonalization
-We consider only harmonic oscillator. With big values of N, i.e. N=100/150 the
-diagonalization take 200 - 1500 seconds. So after the computation we save all
-eigenvalues and eigenvectors to plot them with a second code.
+We consider harmonic oscillator and Hydrogen atom. With big values of N, i.e. N=100/150
+the diagonalization take a lot of time (i.e. 25-100 minutes). So after the computation
+we save all eigenvalues and eigenvectors to plot them with a second code.
+For Hydrogen is important to set lam_type="SA" because the interesting eigvalues are negative
 """
 import time
 import itertools
@@ -12,13 +13,24 @@ from scipy.sparse.linalg import eigsh
 from scipy.sparse import kron, diags, eye
 
 
-def U(x, y, z):
-    ''' Potenteial
+def U(x, y, z, pot):
     '''
-    return 0.5 * (x**2 + y**2 + z**2)
+    Potetntial
+
+    Parameters
+    ----------
+    x, y : ndarray like
+        grid from np.meshgrid
+    pot : string
+        'hydrogen' or 'harmonic'
+    '''
+    if pot == "harmonic":
+        return 0.5*( x**2 + y**2 + z**2)
+    if pot == "hydrogen":
+        return -1/np.sqrt(x**2 + y**2 + z**2)
 
 
-def diag_H(N, k, dx):
+def diag_H(N, k, dx, lam_type, pot):
     '''
     Function to build the hamiltonian and diagonalization
 
@@ -30,6 +42,10 @@ def diag_H(N, k, dx):
         numer of eigenvalues and eigenstates to found
     dx : float
         grid spacing
+    lam_type : string
+        type of eigenvalues to find, smaller algebraic or in magnitude
+    pot : string
+        type of poptential, se U funnction
     '''
     #=========================================================
     # Build hamiltonian of system and diagonalization
@@ -48,10 +64,10 @@ def diag_H(N, k, dx):
     Pxy = kron(Iy, Px) + kron(Py, Ix)
     Ixy = kron(Iy, Ix)
     P   = kron(Iz, Pxy) + kron(Pz, Ixy)
-    V   = diags(U(X, Y, Z).reshape(N**3), 0)
+    V   = diags(U(X, Y, Z, pot).reshape(N**3), 0)
     H   = -1/(2*dx**2)*P + V
 
-    eigval, eigvec = eigsh(H, k=k, which='SM')
+    eigval, eigvec = eigsh(H, k=k, which=lam_type)
 
     return eigval, eigvec
 
@@ -59,26 +75,32 @@ def diag_H(N, k, dx):
 # Computational parameters
 #=========================================================
 
-N       = 150                       # number of points
-x       = np.linspace(-7, 7, N)     # grid
-X, Y, Z = np.meshgrid(x, x, x)      # 3D grid
-dx      = np.diff(x)[0]             # size step
-k       = 10                        # number of eigvalues
+N        = 150                       # number of points
+pot      = 'hydrogen'                # type of potential
+lam_type = 'SA'                      # which eigenvalues find
+x        = np.linspace(-20, 20, N)   # grid
+X, Y, Z  = np.meshgrid(x, x, x)      # 3D grid
+dx       = np.diff(x)[0]             # size step
+k        = 14                        # number of eigvalues
 
 start = time.time()
-eigval, eigvec = diag_H(N, k, dx)
+eigval, eigvec = diag_H(N, k, dx, lam_type, pot)
 print(f"{time.time()-start} s")
 
 # Save data
-np.savez(f"data_{N}", eigval, eigvec)
+np.savez(f"data_{pot}_{N}", eigval, eigvec)
 
 #=========================================================
 # Quickly comparison to se if all is ok
 #=========================================================
 
-deg = lambda n: int(0.5*(n + 1)*(n + 2))
+deg = lambda n: int(0.5*(n + 1)*(n + 2)) # degeneracy of oscillator
 
-E_n = [(n + 3/2) for n in range(4) for g in range(deg(n))]
+# True energetic level
+if pot == "harmonic":
+    E_n = [(n + 3/2) for n in range(4) for g in range(deg(n))]
+if pot == "hydrogen":
+    E_n = [-1/(2*n**2) for n in range(1, 4+1) for l in range(0, n) for m in np.arange(-l, l+1)]
 
 for i in range(len(eigval)):
     print(f"{eigval[i]:.5f}, {E_n[i]}")
