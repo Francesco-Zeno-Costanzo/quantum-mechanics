@@ -6,21 +6,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 N       = 150                       # number of points
-x       = np.linspace(-7, 7, N)     # grid
-X, Y, Z = np.meshgrid(x, x, x)      # 3D grid
-dx      = np.diff(x)[0]             # size step
-k       = 10                        # number of eigvalues
+pot     = 'harmonic'                # type of potential
+x       = np.linspace(-7, 7, N)   # grid
 
-data = np.load(f"data_{N}.npz", allow_pickle='TRUE')
+data = np.load(f"data_{pot}_{N}.npz", allow_pickle='TRUE')
 eigval, eigvec = data["arr_0"], data["arr_1"]
-
-deg = lambda n: int(0.5*(n + 1)*(n + 2))
-psi = lambda n: eigvec.T[n].reshape((N, N, N))#/np.sqrt(dx**3)
-
-E_n = [(n + 3/2) for n in range(4) for g in range(deg(n))]
-
-for i in range(len(eigval)):
-    print(f"{eigval[i]:.5f}, {E_n[i]}")
 
 #=========================================================
 # Plot psi
@@ -61,9 +51,8 @@ def sampling(psi, x, M):
 
     return x, y, z
 
-n = 5
-k = deg(n)
-x_p, y_p, z_p = sampling(eigvec.T[n], x, 100000)
+n = 0
+x_p, y_p, z_p = sampling(eigvec.T[n], x, 10000)
 
 fig = plt.figure(2, figsize=(9,9))
 
@@ -72,8 +61,7 @@ ax.set_title("3D wave function", fontsize=15)
 ax.set_xlabel("x", fontsize=15)
 ax.set_ylabel("y", fontsize=15)
 ax.set_zlabel("z", fontsize=15)
-#p = ax.scatter(x, y, z, c=P, cmap='plasma', s=P);fig.colorbar(p)
-ax.scatter(x_p, y_p, z_p, s=0.22, alpha=0.5, c='blue')
+ax.scatter(x_p, y_p, z_p, s=2, alpha=0.5, c='blue')
 #plt.tight_layout()
 
 #=========================================================
@@ -84,12 +72,18 @@ E = eigval
 
 plt.figure(3)
 plt.title("Energies", fontsize=15)
-plt.ylabel(r"E/$\hbar \omega$", fontsize=15)
+plt.ylabel(r"E [n.u.]", fontsize=15)
 plt.plot(E, marker='.', linestyle='', color='black')
 plt.grid()
-plt.ylim(np.min(E)-1, np.max(E)+1)
 
-[plt.axhline(nx + ny + nz + 3/2, color='b', linestyle='--')
-for nx in range(0,2) for ny in range(0,2) for nz in range(0,2)]
+
+if pot == "harmonic":
+    [plt.axhline(nx + ny + nz + 3/2, color='b', linestyle='--')
+     for nx in range(0,2) for ny in range(0,2) for nz in range(0,2)]
+    plt.ylim(np.min(E)-1, np.max(E)+1)
+
+if pot == "hydrogen":
+    [plt.axhline(-1/(2*n**2), color='b', linestyle='--') for n in range(1,4)]
+    plt.ylim(-0.65, 0.1)
 
 plt.show()
