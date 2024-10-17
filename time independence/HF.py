@@ -189,27 +189,41 @@ def HF(path, Z, tol, verbose=False):
         count   += 1
 
         if verbose:
-            print(f"iter: {count}, energy: {hf_e}")
+            print(f"iter: {count}, \t energy: {hf_e}, \t dE : {delta_e}")
         
     return hf_e
 
 def test():
   
     start = time.time()
+
+    print("Test Helium:")
     Z = 2
-    
     ene_he = HF("HF_helium_integrals.npz", Z, 1e-6, verbose=True)
     ref_he = -2.8616726 # tabulated value
     
-    print(ene_he)
-    print(ref_he)
+    print(f"Computed = {ene_he}")
+    print(f"Expected = {ref_he}")
+    print()
 
+    print("Test Lithium:")
+    Z = 3
+    ene_li = HF("HF_lithium_integrals.npz", Z, 1e-10, verbose=True)
+    ref_li = -7.43124 # tabulated value
+
+    print(f"Computed = {ene_li}")
+    print(f"Expected = {ref_li}")
+    print()
+
+    print("Test Beryllium:")
     Z = 4
     ene_Be = HF("HF_beryllium_integrals.npz", Z, 1e-10, verbose=True)
     ref_Be = -14.572369 # tabulated value
 
-    print(ene_Be)
-    print(ref_Be)
+    
+    print(f"Computed = {ene_Be}")
+    print(f"Expected = {ref_Be}")
+    print()
 
     end = time.time() - start
     print(f"Elapsed time = {end:.3f} s")

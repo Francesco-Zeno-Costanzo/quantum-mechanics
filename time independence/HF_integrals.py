@@ -169,8 +169,9 @@ def two_el(four_bfs):
 def R_matrix(bfs):
     """
     Compute the electron repulsion integral matrix R.
-    The calculation of some elements could be avoided
-    thanks to symmetries. We go by brute force and ignorance
+    We avoid redundant calculations by exploiting the
+    symmetry of the two-electron integrals:
+    (ij|kl) = (ji|lk) = (kl|ij) = (lk|ji)
 
     Parameters
     ----------
@@ -180,19 +181,29 @@ def R_matrix(bfs):
     Returns
     -------
     R : 2darray
-        Repulsion matrix
+        Electron repulsion matrix
     """
-
     num_bfs = len(bfs)
     R = np.zeros((num_bfs, num_bfs, num_bfs, num_bfs))
-
+    
+    # Iterate only over unique indices combinations
     for i in range(num_bfs):
-        for j in range(num_bfs):
+        for j in range(i + 1):
             for k in range(num_bfs):
-                for l in range(num_bfs):
-                    R[i, j, k, l] = two_el([bfs[i], bfs[j], bfs[k], bfs[l]])
-
-
+                for l in range(k + 1):
+                    # Compute the integral for (ij|kl)
+                    integral = two_el([bfs[i], bfs[j], bfs[k], bfs[l]])
+                    
+                    # Assign values using the symmetry
+                    R[i, j, k, l] = integral
+                    R[j, i, k, l] = integral
+                    R[i, j, l, k] = integral
+                    R[j, i, l, k] = integral
+                    R[k, l, i, j] = integral
+                    R[l, k, i, j] = integral
+                    R[k, l, j, i] = integral
+                    R[l, k, j, i] = integral
+    
     return R
 
 def helium():
@@ -217,7 +228,32 @@ def helium():
     np.savez('HF_helium_integrals', H=H, S=S, R=R)
 
     end = time.time() - start
-    print(f"Elapsed time = {end:.3f} s") # 10.537 s
+    print(f"Elapsed time = {end:.3f} s") # 7.873 s
+
+def lithium():
+    start = time.time()
+
+    # Use 2 STOs to represent the 1s orbital and 2 STOs for the 2s orbital
+    f1s_1 = STO(3.86409, n=1)
+    f1s_2 = STO(1.94613, n=1)
+    f2s_1 = STO(0.6362897, n=2)
+    f2s_2 = STO(0.37407,   n=2)
+
+    # Basis functions
+    phi_i = [f1s_1, f1s_2, f2s_1, f2s_2]
+
+    Z = 3  # Nuclear charge for lithium
+    print("Computing H ...")
+    H = H_matrix(phi_i, Z)
+    print("Computing S ...")
+    S = S_matrix(phi_i)
+    print("Computing R ...")
+    R = R_matrix(phi_i)
+
+    np.savez('HF_lithium_integrals', H=H, S=S, R=R)
+
+    end = time.time() - start
+    print(f"Elapsed time = {end:.3f} s") # 45.726 s
 
 def beryllium():
     
@@ -244,10 +280,10 @@ def beryllium():
     np.savez('HF_beryllium_integrals', H=H, S=S, R=R)
 
     end = time.time() - start
-    print(f"Elapsed time = {end:.3f} s") # 183.967 s
-
+    print(f"Elapsed time = {end:.3f} s") # 81.063 s
 
 
 if __name__ == "__main__":
     helium()
+    lithium()
     beryllium()
