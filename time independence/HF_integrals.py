@@ -211,7 +211,7 @@ def helium():
     start = time.time()
 
     # Use 2 Slator Type ourbital to represent Helium 1s orbital.
-    # The final Helium 1s orbital is a linear combination of these two STO.    
+    # The final Helium 1s orbital is a linear combination of these two STO. 
     f1s_1 = STO(1.45363, n=1)
     f1s_2 = STO(2.91093, n=1)
 

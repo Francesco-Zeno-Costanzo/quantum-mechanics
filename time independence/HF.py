@@ -201,7 +201,7 @@ def test():
     Z = 2
     ene_he = HF("HF_helium_integrals.npz", Z, 1e-6, verbose=True)
     ref_he = -2.8616726 # tabulated value
-    
+    """
     print(f"Computed = {ene_he}")
     print(f"Expected = {ref_he}")
     print()
@@ -224,9 +224,11 @@ def test():
     print(f"Computed = {ene_Be}")
     print(f"Expected = {ref_Be}")
     print()
+    """
 
     end = time.time() - start
     print(f"Elapsed time = {end:.3f} s")
 
 if __name__ == "__main__":
-    test()
+    #test()
+    HF("HF_helium_integrals.npz", 2, 1e-6, verbose=True)
