@@ -131,7 +131,7 @@ def Numerov(num_steps, xi, xf, init_f, init_b, f, args=()):
     for i in range(index, num_steps + 1):
         y[i] *= y_m   # impose continuiti
     
-    y = y/np.sqrt(si.simps(np.square(y), x, even='first')) # normalization of function
+    y = y/np.sqrt(si.simpson(np.square(y), x=x)) # normalization of function
     
     jump = (y[index + 1] + y[index - 1] - (14 - 12*fact[i]) * y[index]) / dx
     jump = jump * y[index] # jump of first derivative
@@ -229,7 +229,7 @@ step  = 0.001    # step for searching of second bound
 tau   = 1.0e-12  # tollerance for bisection
 x_b   = 10       # size of box
 V0    = -1       # potential
-E1    = -0.999   # initial guess for eigenvalue
+E1    = -0.399   # initial guess for eigenvalue
 l     = 0        # angular momentum
 
 
